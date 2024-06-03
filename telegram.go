@@ -1,12 +1,13 @@
 package main
 
 import (
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Telegram interface {
 	Init() error
-	SendMessage(message string) error
+	NotifyEvent(event CalendarEvent) error
 }
 
 func NewTelegram(cfg Config) Telegram {
@@ -30,8 +31,9 @@ func (t *telegram) Init() error {
 	return nil
 }
 
-func (t *telegram) SendMessage(message string) error {
-	msg := tgbotapi.NewMessage(t.cfg.TelegramChatId, message)
+func (t *telegram) NotifyEvent(event CalendarEvent) error {
+	msgBody := fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End)
+	msg := tgbotapi.NewMessage(t.cfg.TelegramChatId, msgBody)
 	msg.ParseMode = "markdown"
 	_, err := t.bot.Send(msg)
 	return err

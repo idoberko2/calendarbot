@@ -9,7 +9,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-type CalendarClient interface {
+type CalendarService interface {
 	Init(ctx context.Context) error
 	GetRecentEvents(ctx context.Context, since time.Time) ([]CalendarEvent, error)
 }
@@ -21,7 +21,7 @@ type CalendarEvent struct {
 	Creator string
 }
 
-func NewCalendarService(cfg Config) CalendarClient {
+func NewCalendarService(cfg Config) CalendarService {
 	return &calendarClient{
 		cfg: cfg,
 	}

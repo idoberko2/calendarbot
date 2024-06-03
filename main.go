@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"time"
-
 	log "github.com/sirupsen/logrus"
 )
 
@@ -30,31 +27,14 @@ func main() {
 	}
 
 	lastChkdDao := NewLastCheckedDao(cfg)
-	t, isExist, err := lastChkdDao.GetLastChecked()
-	if !isExist {
-		t = time.Now().Add(-time.Hour)
-	} else if err != nil {
-		log.WithError(err).Fatal("error reading last checked from file")
+	engine := Engine{
+		cfg:         cfg,
+		calSvc:      calSvc,
+		telcli:      telcli,
+		lastChkdDao: lastChkdDao,
 	}
 
-	timeCheck := time.Now()
-	events, err := calSvc.GetRecentEvents(ctx, t)
-	if err != nil {
-		log.WithError(err).Fatal("error getting events")
-	}
-
-	for _, e := range events {
-		if e.Creator == cfg.CalendarId {
-			continue
-		}
-
-		msg := fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", e.Title, e.Start, e.End)
-		if err := telcli.SendMessage(msg); err != nil {
-			log.WithError(err).Fatal("error sending telegram message")
-		}
-	}
-
-	if err := lastChkdDao.SetLastChecked(timeCheck); err != nil {
-		log.WithError(err).Fatal("error writing last checked time")
+	if err := engine.Work(ctx); err != nil {
+		log.WithError(err).Fatal("engine failed")
 	}
 }
