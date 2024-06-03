@@ -1,0 +1,4 @@
+.env
+google_service_account.json
+last_checked.txt
+bin/
