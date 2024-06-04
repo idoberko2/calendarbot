@@ -32,9 +32,12 @@ func (t *telegram) Init() error {
 }
 
 func (t *telegram) NotifyEvent(event CalendarEvent) error {
-	msgBody := fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End)
-	msg := tgbotapi.NewMessage(t.cfg.TelegramChatId, msgBody)
+	msg := tgbotapi.NewMessage(t.cfg.TelegramChatId, prepareMessageBody(event))
 	msg.ParseMode = "markdown"
 	_, err := t.bot.Send(msg)
 	return err
+}
+
+func prepareMessageBody(event CalendarEvent) string {
+	return fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End)
 }
