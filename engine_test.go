@@ -77,9 +77,15 @@ func (s *EngineSuite) TestReceiveEvents() {
 		End:     "end",
 		Creator: "someone else",
 	}
+	ignoredEvent := CalendarEvent{
+		Title:   "Should be ignored",
+		Start:   "start",
+		End:     "end",
+		Creator: s.calendarId,
+	}
 	s.calSvcMock.On("GetRecentEvents", ctx, mock.Anything).Return([]CalendarEvent{
 		notifiedEvent,
-		{"Should be ignored", "start", "end", s.calendarId},
+		ignoredEvent,
 	}, nil)
 	s.telCliMock.On("NotifyEvent", mock.Anything).Return(nil)
 
