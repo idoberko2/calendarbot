@@ -49,6 +49,8 @@ func prepareMessageBody(event CalendarEvent) (string, error) {
 		return fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
 	case StatusUpdated:
 		return fmt.Sprintf("️✍🏻 *עדכון: %s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
+	case StatusCanceled:
+		return fmt.Sprintf("️🆇 *בוטל: %s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
 	default:
 		return "", fmt.Errorf("unexpected status: %d", event.Status)
 	}
