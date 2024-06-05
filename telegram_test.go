@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -34,7 +35,8 @@ func TestPrepareMessageBody(t *testing.T) {
 				End:    end,
 				Status: test.status,
 			}
-			actual := prepareMessageBody(event)
+			actual, err := prepareMessageBody(event)
+			require.NoError(t, err)
 			assert.Equal(t, test.expected, actual)
 		})
 	}

@@ -32,12 +32,24 @@ func (t *telegram) Init() error {
 }
 
 func (t *telegram) NotifyEvent(event CalendarEvent) error {
-	msg := tgbotapi.NewMessage(t.cfg.TelegramChatId, prepareMessageBody(event))
+	msgBody, err := prepareMessageBody(event)
+	if err != nil {
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(t.cfg.TelegramChatId, msgBody)
 	msg.ParseMode = "markdown"
-	_, err := t.bot.Send(msg)
+	_, err = t.bot.Send(msg)
 	return err
 }
 
-func prepareMessageBody(event CalendarEvent) string {
-	return fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End)
+func prepareMessageBody(event CalendarEvent) (string, error) {
+	switch event.Status {
+	case StatusCreated:
+		return fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
+	case StatusUpdated:
+		return fmt.Sprintf("️✍🏻 *עדכון: %s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
+	default:
+		return "", fmt.Errorf("unexpected status: %d", event.Status)
+	}
 }
