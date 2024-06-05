@@ -26,6 +26,11 @@ func TestPrepareMessageBody(t *testing.T) {
 			status:   StatusUpdated,
 			expected: fmt.Sprintf("️✍🏻 *עדכון: %s*\n\n*התחלה:* %s\n*סיום:* %s", title, start, end),
 		},
+		{
+			name:     "cancelled event",
+			status:   StatusCanceled,
+			expected: fmt.Sprintf("️🆇 *בוטל: %s*\n\n*התחלה:* %s\n*סיום:* %s", title, start, end),
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
