@@ -77,7 +77,7 @@ func (c *calendarClient) GetRecentEvents(ctx context.Context, since time.Time) (
 			Title:   e.Summary,
 			Start:   e.Start.DateTime,
 			End:     e.End.DateTime,
-			Creator: e.Creator.Email,
+			Creator: getEventCreator(e),
 			Status:  parseEventStatus(e),
 		})
 	}
@@ -88,6 +88,14 @@ const (
 	googleStatusConfirmed = "confirmed"
 	googleStatusCancelled = "cancelled"
 )
+
+func getEventCreator(event *calendar.Event) string {
+	if event.Creator == nil {
+		return ""
+	}
+
+	return event.Creator.Email
+}
 
 func parseEventStatus(event *calendar.Event) EventStatus {
 	switch event.Status {
