@@ -14,11 +14,21 @@ type CalendarService interface {
 	GetRecentEvents(ctx context.Context, since time.Time) ([]CalendarEvent, error)
 }
 
+type EventStatus int
+
+const (
+	StatusCreated EventStatus = iota
+	StatusUpdated
+	StatusCanceled
+	StatusUnknown
+)
+
 type CalendarEvent struct {
 	Title   string
 	Start   string
 	End     string
 	Creator string
+	Status  EventStatus
 }
 
 func NewCalendarService(cfg Config) CalendarService {
@@ -50,7 +60,7 @@ func (c *calendarClient) Init(ctx context.Context) error {
 func (c *calendarClient) GetRecentEvents(ctx context.Context, since time.Time) ([]CalendarEvent, error) {
 	events, err := c.svc.Events.
 		List(c.cfg.CalendarId).
-		ShowDeleted(false).
+		ShowDeleted(true).
 		SingleEvents(true).
 		UpdatedMin(since.Format(time.RFC3339)).
 		MaxResults(10).
@@ -67,8 +77,51 @@ func (c *calendarClient) GetRecentEvents(ctx context.Context, since time.Time) (
 			Title:   e.Summary,
 			Start:   e.Start.DateTime,
 			End:     e.End.DateTime,
-			Creator: e.Creator.Email,
+			Creator: getEventCreator(e),
+			Status:  parseEventStatus(e),
 		})
 	}
 	return resp, nil
+}
+
+const (
+	googleStatusConfirmed = "confirmed"
+	googleStatusCancelled = "cancelled"
+)
+
+func getEventCreator(event *calendar.Event) string {
+	if event.Creator == nil {
+		return ""
+	}
+
+	return event.Creator.Email
+}
+
+func parseEventStatus(event *calendar.Event) EventStatus {
+	switch event.Status {
+	case googleStatusConfirmed:
+		if isEventUpdated(event) {
+			return StatusUpdated
+		} else {
+			return StatusCreated
+		}
+	case googleStatusCancelled:
+		return StatusCanceled
+	default:
+		return StatusUnknown
+	}
+}
+
+func isEventUpdated(event *calendar.Event) bool {
+	created, err := time.Parse(time.RFC3339, event.Created)
+	if err != nil {
+		return false
+	}
+
+	updated, err := time.Parse(time.RFC3339, event.Updated)
+	if err != nil {
+		return false
+	}
+
+	return updated.Sub(created) >= time.Second
 }
