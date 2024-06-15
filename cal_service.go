@@ -127,9 +127,17 @@ func isEventUpdated(event *calendar.Event) bool {
 }
 
 func parseEventStart(event *calendar.Event) string {
-	return event.Start.DateTime
+	return parseEventTime(event.Start)
 }
 
 func parseEventEnd(event *calendar.Event) string {
-	return event.End.DateTime
+	return parseEventTime(event.End)
+}
+
+func parseEventTime(eventDateTime *calendar.EventDateTime) string {
+	if eventDateTime.Date != "" {
+		return eventDateTime.Date
+	}
+
+	return eventDateTime.DateTime
 }
