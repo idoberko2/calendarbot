@@ -76,7 +76,7 @@ func (c *calendarClient) GetRecentEvents(ctx context.Context, since time.Time) (
 		resp = append(resp, CalendarEvent{
 			Title:   e.Summary,
 			Start:   parseEventStart(e),
-			End:     e.End.DateTime,
+			End:     parseEventEnd(e),
 			Creator: getEventCreator(e),
 			Status:  parseEventStatus(e),
 		})
