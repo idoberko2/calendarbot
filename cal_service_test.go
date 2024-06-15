@@ -68,3 +68,47 @@ func TestParseStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestParseEventDates(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         *calendar.Event
+		expectedStart string
+		expectedEnd   string
+	}{
+		{
+			name: "date and time",
+			input: &calendar.Event{
+				Start: &calendar.EventDateTime{
+					DateTime: "2024-06-12T20:00:00+03:00",
+				},
+				End: &calendar.EventDateTime{
+					DateTime: "2024-06-12T21:00:00+03:00",
+				},
+			},
+			expectedStart: "2024-06-12T20:00:00+03:00",
+			expectedEnd:   "2024-06-12T21:00:00+03:00",
+		},
+		{
+			name: "date only",
+			input: &calendar.Event{
+				Start: &calendar.EventDateTime{
+					Date: "2024-06-12",
+				},
+				End: &calendar.EventDateTime{
+					Date: "2024-06-13",
+				},
+			},
+			expectedStart: "2024-06-12",
+			expectedEnd:   "2024-06-13",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actualStart := parseEventStart(test.input)
+			actualEnd := parseEventEnd(test.input)
+			assert.Equal(t, test.expectedStart, actualStart)
+			assert.Equal(t, test.expectedEnd, actualEnd)
+		})
+	}
+}

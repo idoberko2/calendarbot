@@ -75,7 +75,7 @@ func (c *calendarClient) GetRecentEvents(ctx context.Context, since time.Time) (
 	for _, e := range events.Items {
 		resp = append(resp, CalendarEvent{
 			Title:   e.Summary,
-			Start:   e.Start.DateTime,
+			Start:   parseEventStart(e),
 			End:     e.End.DateTime,
 			Creator: getEventCreator(e),
 			Status:  parseEventStatus(e),
@@ -124,4 +124,12 @@ func isEventUpdated(event *calendar.Event) bool {
 	}
 
 	return updated.Sub(created) >= time.Second
+}
+
+func parseEventStart(event *calendar.Event) string {
+	return event.Start.DateTime
+}
+
+func parseEventEnd(event *calendar.Event) string {
+	return event.End.DateTime
 }
