@@ -81,8 +81,8 @@ func prepareMessageBody(event CalendarEvent) (string, error) {
 }
 
 func FormatDateTime(t time.Time) string {
-	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 && t.Nanosecond() == 0 {
-		return t.Format(time.DateOnly)
+	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 {
+		return fmt.Sprintf("%s (%s)", t.Format(time.DateOnly), getDayOfWeek(t))
 	}
 
 	return fmt.Sprintf("%s (%s)", t.Format(time.DateTime), getDayOfWeek(t))
