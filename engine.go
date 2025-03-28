@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"time"
+
+	"github.com/pkg/errors"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Engine struct {
@@ -29,6 +32,12 @@ func (e *Engine) Work(ctx context.Context) error {
 
 	for _, event := range events {
 		if event.Creator == e.cfg.CalendarId {
+			log.Info("ignoring event created by calendar owner")
+			continue
+		}
+
+		if event.Start.Before(timeCheck) {
+			log.Info("ignoring outdated event")
 			continue
 		}
 
