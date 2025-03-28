@@ -2,15 +2,17 @@ package main
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestPrepareMessageBody(t *testing.T) {
 	title := "some title"
-	start := "start time"
-	end := "end time"
+	start := time.Now().Add(24 * time.Hour)
+	end := start.Add(time.Hour)
 	tests := []struct {
 		name     string
 		status   EventStatus

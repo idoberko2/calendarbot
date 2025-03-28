@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"google.golang.org/api/calendar/v3"
 	"os"
 	"time"
 
+	"google.golang.org/api/calendar/v3"
+
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/api/option"
 )
 
@@ -25,8 +27,8 @@ const (
 
 type CalendarEvent struct {
 	Title   string
-	Start   string
-	End     string
+	Start   time.Time
+	End     time.Time
 	Creator string
 	Status  EventStatus
 }
@@ -126,18 +128,24 @@ func isEventUpdated(event *calendar.Event) bool {
 	return updated.Sub(created) >= time.Second
 }
 
-func parseEventStart(event *calendar.Event) string {
+func parseEventStart(event *calendar.Event) time.Time {
 	return parseEventTime(event.Start)
 }
 
-func parseEventEnd(event *calendar.Event) string {
+func parseEventEnd(event *calendar.Event) time.Time {
 	return parseEventTime(event.End)
 }
 
-func parseEventTime(eventDateTime *calendar.EventDateTime) string {
+func parseEventTime(eventDateTime *calendar.EventDateTime) time.Time {
 	if eventDateTime.Date != "" {
-		return eventDateTime.Date
+		return time.Time{}
 	}
 
-	return eventDateTime.DateTime
+	t, err := time.Parse(time.RFC3339, eventDateTime.DateTime)
+	if err != nil {
+		log.WithError(err).Error("error parsing event time")
+		return time.Time{}
+	}
+
+	return t
 }

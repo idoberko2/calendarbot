@@ -72,16 +72,18 @@ func (s *EngineSuite) TestReceiveEvents() {
 	ctx := context.Background()
 	lastChecked := time.Now().Add(-time.Minute)
 	s.Require().NoError(s.lastChkdDao.SetLastChecked(lastChecked))
+	start := time.Now().Add(24 * time.Hour)
+	end := start.Add(time.Hour)
 	notifiedEvent := CalendarEvent{
 		Title:   "Should be notified",
-		Start:   "start",
-		End:     "end",
+		Start:   start,
+		End:     end,
 		Creator: "someone else",
 	}
 	ignoredEvent := CalendarEvent{
 		Title:   "Should be ignored",
-		Start:   "start",
-		End:     "end",
+		Start:   start,
+		End:     end,
 		Creator: s.calendarId,
 	}
 	s.calSvcMock.On("GetRecentEvents", ctx, mock.Anything).Return([]CalendarEvent{
@@ -103,20 +105,23 @@ func (s *EngineSuite) TestReceiveEvents() {
 }
 
 func (s *EngineSuite) TestIgnoreEvents() {
+	start := time.Now().Add(24 * time.Hour)
+	end := start.Add(time.Hour)
+
 	tests := []struct {
 		name  string
 		event CalendarEvent
 	}{
 		{"ignore configured calendar id", CalendarEvent{
 			Title:   "Should be ignored",
-			Start:   "start",
-			End:     "end",
+			Start:   start,
+			End:     end,
 			Creator: s.calendarId,
 		}},
 		{"ignore outdated events", CalendarEvent{
 			Title:   "Should be ignored",
-			Start:   time.Now().Add(-24 * time.Hour).Format(time.RFC3339),
-			End:     time.Now().Add(-23 * time.Hour).Format(time.RFC3339),
+			Start:   time.Now().Add(-24 * time.Hour),
+			End:     time.Now().Add(-23 * time.Hour),
 			Creator: "some-other-calendar-id",
 		}},
 	}
