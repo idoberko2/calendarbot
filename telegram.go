@@ -2,8 +2,20 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
+
+var weekdayDict = map[time.Weekday]string{
+	time.Sunday:    "ראשון",
+	time.Monday:    "שני",
+	time.Tuesday:   "שלישי",
+	time.Wednesday: "רביעי",
+	time.Thursday:  "חמישי",
+	time.Friday:    "שישי",
+	time.Saturday:  "שבת",
+}
 
 type Telegram interface {
 	Init() error
@@ -46,12 +58,36 @@ func (t *telegram) NotifyEvent(event CalendarEvent) error {
 func prepareMessageBody(event CalendarEvent) (string, error) {
 	switch event.Status {
 	case StatusCreated:
-		return fmt.Sprintf("🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
+		return fmt.Sprintf(
+			"🗓️ *%s*\n\n*התחלה:* %s\n*סיום:* %s",
+			event.Title,
+			FormatDateTime(event.Start),
+			FormatDateTime(event.End)), nil
 	case StatusUpdated:
-		return fmt.Sprintf("️✍🏻 *עדכון: %s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
+		return fmt.Sprintf(
+			"️✍🏻 *עדכון: %s*\n\n*התחלה:* %s\n*סיום:* %s",
+			event.Title,
+			FormatDateTime(event.Start),
+			FormatDateTime(event.End)), nil
 	case StatusCanceled:
-		return fmt.Sprintf("️🆇 *בוטל: %s*\n\n*התחלה:* %s\n*סיום:* %s", event.Title, event.Start, event.End), nil
+		return fmt.Sprintf(
+			"️🆇 *בוטל: %s*\n\n*התחלה:* %s\n*סיום:* %s",
+			event.Title,
+			FormatDateTime(event.Start),
+			FormatDateTime(event.End)), nil
 	default:
 		return "", fmt.Errorf("unexpected status: %d", event.Status)
 	}
+}
+
+func FormatDateTime(t time.Time) string {
+	if t.Hour() == 0 && t.Minute() == 0 && t.Second() == 0 && t.Nanosecond() == 0 {
+		return t.Format(time.DateOnly)
+	}
+
+	return fmt.Sprintf("%s (%s)", t.Format(time.DateTime), getDayOfWeek(t))
+}
+
+func getDayOfWeek(t time.Time) string {
+	return weekdayDict[t.Weekday()]
 }
