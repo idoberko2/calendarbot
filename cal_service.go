@@ -138,7 +138,12 @@ func parseEventEnd(event *calendar.Event) time.Time {
 
 func parseEventTime(eventDateTime *calendar.EventDateTime) time.Time {
 	if eventDateTime.Date != "" {
-		return time.Time{}
+		t, err := time.Parse(time.DateOnly, eventDateTime.Date)
+		if err != nil {
+			log.WithError(err).Error("error parsing event date")
+			return time.Time{}
+		}
+		return t
 	}
 
 	t, err := time.Parse(time.RFC3339, eventDateTime.DateTime)
