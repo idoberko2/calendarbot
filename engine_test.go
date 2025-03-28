@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
 
 type EngineSuite struct {
@@ -71,16 +72,18 @@ func (s *EngineSuite) TestReceiveEvents() {
 	ctx := context.Background()
 	lastChecked := time.Now().Add(-time.Minute)
 	s.Require().NoError(s.lastChkdDao.SetLastChecked(lastChecked))
+	start := time.Now().Add(24 * time.Hour)
+	end := start.Add(time.Hour)
 	notifiedEvent := CalendarEvent{
 		Title:   "Should be notified",
-		Start:   "start",
-		End:     "end",
+		Start:   start,
+		End:     end,
 		Creator: "someone else",
 	}
 	ignoredEvent := CalendarEvent{
 		Title:   "Should be ignored",
-		Start:   "start",
-		End:     "end",
+		Start:   start,
+		End:     end,
 		Creator: s.calendarId,
 	}
 	s.calSvcMock.On("GetRecentEvents", ctx, mock.Anything).Return([]CalendarEvent{
@@ -99,4 +102,51 @@ func (s *EngineSuite) TestReceiveEvents() {
 
 	s.telCliMock.AssertNumberOfCalls(s.T(), "NotifyEvent", 1)
 	s.telCliMock.AssertCalled(s.T(), "NotifyEvent", notifiedEvent)
+}
+
+func (s *EngineSuite) TestIgnoreEvents() {
+	start := time.Now().Add(24 * time.Hour)
+	end := start.Add(time.Hour)
+
+	tests := []struct {
+		name  string
+		event CalendarEvent
+	}{
+		{"ignore configured calendar id", CalendarEvent{
+			Title:   "Should be ignored",
+			Start:   start,
+			End:     end,
+			Creator: s.calendarId,
+		}},
+		{"ignore outdated events", CalendarEvent{
+			Title:   "Should be ignored",
+			Start:   time.Now().Add(-24 * time.Hour),
+			End:     time.Now().Add(-23 * time.Hour),
+			Creator: "some-other-calendar-id",
+		}},
+	}
+	ctx := context.Background()
+
+	for _, test := range tests {
+		s.Suite.Run(test.name, func() {
+			lastChecked := time.Now().Add(-time.Minute)
+			s.SetupTest()
+
+			s.Require().NoError(s.lastChkdDao.SetLastChecked(lastChecked))
+			s.calSvcMock.On("GetRecentEvents", ctx, mock.Anything).Return([]CalendarEvent{
+				test.event,
+			}, nil)
+			s.telCliMock.On("NotifyEvent", mock.Anything).Return(nil)
+
+			// SUT
+			s.Require().NoError(s.engine.Work(ctx))
+
+			s.Require().Len(s.calSvcMock.Calls, 1)
+			calledTime, ok := s.calSvcMock.Calls[0].Arguments[1].(time.Time)
+			s.Require().True(ok)
+			s.Assert().WithinDuration(lastChecked, calledTime, time.Second)
+
+			s.telCliMock.AssertNotCalled(s.T(), "NotifyEvent", mock.Anything)
+		})
+	}
 }

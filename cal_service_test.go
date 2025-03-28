@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/api/calendar/v3"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/api/calendar/v3"
 )
 
 func TestParseStatus(t *testing.T) {
@@ -73,8 +74,8 @@ func TestParseEventDates(t *testing.T) {
 	tests := []struct {
 		name          string
 		input         *calendar.Event
-		expectedStart string
-		expectedEnd   string
+		expectedStart time.Time
+		expectedEnd   time.Time
 	}{
 		{
 			name: "date and time",
@@ -86,8 +87,8 @@ func TestParseEventDates(t *testing.T) {
 					DateTime: "2024-06-12T21:00:00+03:00",
 				},
 			},
-			expectedStart: "2024-06-12T20:00:00+03:00",
-			expectedEnd:   "2024-06-12T21:00:00+03:00",
+			expectedStart: parseTimeNoError("2024-06-12T20:00:00+03:00"),
+			expectedEnd:   parseTimeNoError("2024-06-12T21:00:00+03:00"),
 		},
 		{
 			name: "date only",
@@ -99,8 +100,8 @@ func TestParseEventDates(t *testing.T) {
 					Date: "2024-06-13",
 				},
 			},
-			expectedStart: "2024-06-12",
-			expectedEnd:   "2024-06-13",
+			expectedStart: parseDateNoError("2024-06-12"),
+			expectedEnd:   parseDateNoError("2024-06-13"),
 		},
 	}
 	for _, test := range tests {
@@ -111,4 +112,14 @@ func TestParseEventDates(t *testing.T) {
 			assert.Equal(t, test.expectedEnd, actualEnd)
 		})
 	}
+}
+
+func parseTimeNoError(timeString string) time.Time {
+	t, _ := time.Parse(time.RFC3339, timeString)
+	return t
+}
+
+func parseDateNoError(dateString string) time.Time {
+	t, _ := time.Parse(time.DateOnly, dateString)
+	return t
 }
