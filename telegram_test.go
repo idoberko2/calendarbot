@@ -20,7 +20,7 @@ func TestPrepareMessageBodyDateTime(t *testing.T) {
 	start := time.Now().Add(24 * time.Hour)
 	end := start.Add(time.Hour)
 
-	testsDateTime := []testCase{
+	tests := []testCase{
 		{
 			name:     "newly created event",
 			status:   StatusCreated,
@@ -38,7 +38,7 @@ func TestPrepareMessageBodyDateTime(t *testing.T) {
 		},
 	}
 
-	for _, test := range testsDateTime {
+	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			event := CalendarEvent{
 				Title:  title,
@@ -61,7 +61,7 @@ func TestPrepareMessageBodyDateOnly(t *testing.T) {
 	startDay := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
 	endDay := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, end.Location())
 
-	testsDateOnly := []testCase{
+	tests := []testCase{
 		{
 			name:     "newly created event",
 			status:   StatusCreated,
@@ -79,7 +79,7 @@ func TestPrepareMessageBodyDateOnly(t *testing.T) {
 		},
 	}
 
-	for _, test := range testsDateOnly {
+	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			event := CalendarEvent{
 				Title:  title,
