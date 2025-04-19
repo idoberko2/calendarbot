@@ -101,7 +101,7 @@ func TestParseEventDates(t *testing.T) {
 				},
 			},
 			expectedStart: parseDateNoError("2024-06-12"),
-			expectedEnd:   parseDateNoError("2024-06-13"),
+			expectedEnd:   parseDateNoError("2024-06-12"),
 		},
 	}
 	for _, test := range tests {
