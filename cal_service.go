@@ -129,23 +129,31 @@ func isEventUpdated(event *calendar.Event) bool {
 }
 
 func parseEventStart(event *calendar.Event) time.Time {
-	return parseEventTime(event.Start)
+	return parseEventTime(event.Start, false)
 }
 
 func parseEventEnd(event *calendar.Event) time.Time {
-	return parseEventTime(event.End)
+	return parseEventTime(event.End, true)
 }
 
-func parseEventTime(eventDateTime *calendar.EventDateTime) time.Time {
+func parseEventTime(eventDateTime *calendar.EventDateTime, isEnd bool) time.Time {
+	// full day events
 	if eventDateTime.Date != "" {
 		t, err := time.Parse(time.DateOnly, eventDateTime.Date)
 		if err != nil {
 			log.WithError(err).Error("error parsing event date")
 			return time.Time{}
 		}
+
+		// If it's the end of a full day event, we need to subtract 1 day as
+		// the end of the day is not included in the event
+		if isEnd {
+			return t.Add(-24 * time.Hour)
+		}
 		return t
 	}
 
+	// date and time events
 	t, err := time.Parse(time.RFC3339, eventDateTime.DateTime)
 	if err != nil {
 		log.WithError(err).Error("error parsing event time")
